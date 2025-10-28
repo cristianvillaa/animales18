@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🎧 Adivina el sonido del animal</title>
+  <style>
+    body {
+      font-family: "Poppins", sans-serif;
+      text-align: center;
+      background: linear-gradient(to bottom, #a8edea, #fed6e3);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+    }
+    h1 { color: #333; }
+    #puntaje {
+      font-size: 20px;
+      margin-bottom: 15px;
+      color: #333;
+    }
+    .opcion {
+      display: inline-block;
+      margin: 8px;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      padding: 15px 25px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 18px;
+      transition: transform 0.2s ease, background-color 0.2s ease;
+    }
+    .opcion:hover {
+      transform: scale(1.05);
+      background-color: #45a049;
+    }
+    #resultado {
+      font-size: 24px;
+      margin-top: 20px;
+      color: #222;
+      font-weight: bold;
+    }
+    #reiniciar {
+      display: none;
+      margin-top: 25px;
+      background-color: #2196F3;
+      color: white;
+      border: none;
+      padding: 12px 25px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 18px;
+    }
+    #reiniciar:hover { background-color: #1976D2; }
+  </style>
+</head>
+<body>
+
+  <h1>🎧 Adivina el sonido del animal 🐾</h1>
+  <div id="puntaje">Puntaje: 0 | Ronda: 1</div>
+  <p>Escuchá el sonido y elegí el animal correcto:</p>
+
+  <audio id="audio" controls></audio><br>
+
+  <div id="opciones"></div>
+  <div id="resultado"></div>
+  <button id="reiniciar" onclick="reiniciarJuego()">🔁 Jugar de nuevo</button>
+
+  <script>
+    const animalesOriginal = [
+      { nombre: "Perro", sonido: "perro.mp3" },
+      { nombre: "Gato", sonido: "gato.mp3" },
+      { nombre: "Vaca", sonido: "Vaca.mp3" },
+      { nombre: "Caballo", sonido: "Caballo.mp3" },
+      { nombre: "Pato", sonido: "pato.mp3" },
+      { nombre: "Cerdo", sonido: "Cerdo.mp3" },
+      { nombre: "Oveja", sonido: "oveja.mp3" }
+    ];
+
+    const audio = document.getElementById("audio");
+    const opcionesDiv = document.getElementById("opciones");
+    const resultado = document.getElementById("resultado");
+    const puntajeDiv = document.getElementById("puntaje");
+    const reiniciarBtn = document.getElementById("reiniciar");
+
+    let animalesDisponibles = [];
+    let puntaje = 0;
+    let ronda = 1;
+    let animalCorrecto;
+
+    function nuevoSonido() {
+      resultado.textContent = "";
+      opcionesDiv.innerHTML = "";
+
+      if (animalesDisponibles.length === 0) {
+        mostrarResultadoFinal();
+        return;
+      }
+
+      // Elegir animal aleatorio sin repetir
+      const indice = Math.floor(Math.random() * animalesDisponibles.length);
+      animalCorrecto = animalesDisponibles[indice];
+      animalesDisponibles.splice(indice, 1);
+
+      // Reproducir sonido
+      audio.src = animalCorrecto.sonido;
+      audio.play();
+
+      // Generar opciones aleatorias
+      const opciones = [...animalesOriginal].sort(() => 0.5 - Math.random()).slice(0, 3);
+      if (!opciones.includes(animalCorrecto)) {
+        opciones[Math.floor(Math.random() * 3)] = animalCorrecto;
+      }
+
+      opciones.forEach(animal => {
+        const boton = document.createElement("button");
+        boton.className = "opcion";
+        boton.textContent = animal.nombre;
+        boton.onclick = () => verificarRespuesta(animal.nombre);
+        opcionesDiv.appendChild(boton);
+      });
+
+      puntajeDiv.textContent = `Puntaje: ${puntaje} | Ronda: ${ronda}`;
+    }
+
+    function verificarRespuesta(nombre) {
+      const botones = document.querySelectorAll(".opcion");
+      botones.forEach(b => b.disabled = true);
+
+      if (nombre === animalCorrecto.nombre) {
+        resultado.textContent = "✅ ¡Correcto! Era un " + nombre + " 🐾";
+        resultado.style.color = "green";
+        puntaje++;
+      } else {
+        resultado.textContent = "❌ Incorrecto. Era un " + animalCorrecto.nombre;
+        resultado.style.color = "red";
+      }
+
+      ronda++;  
+      setTimeout(nuevoSonido, 2500);
+    }
+
+    function mostrarResultadoFinal() {
+      opcionesDiv.innerHTML = "";
+      resultado.innerHTML = `🎉 Juego terminado 🎉<br>Tu puntaje final es <strong>${puntaje} de ${animalesOriginal.length}</strong>`;
+      audio.pause();
+      reiniciarBtn.style.display = "inline-block";
+      puntajeDiv.textContent = `Puntaje final: ${puntaje} / ${animalesOriginal.length}`;
+    }
+
+    function reiniciarJuego() {
+      puntaje = 0;
+      ronda = 1;
+      animalesDisponibles = [...animalesOriginal];
+      reiniciarBtn.style.display = "none";
+      nuevoSonido();
+    }
+
+    // Iniciar juego
+    animalesDisponibles = [...animalesOriginal];
+    nuevoSonido();
+  </script>
+</body>
+</html>
